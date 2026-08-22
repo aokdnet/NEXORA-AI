@@ -35,9 +35,9 @@ export async function POST(req: Request) {
       content: response.choices[0].message.content,
     });
   } catch (error: any) {
-    console.error('Chat API Error:', error);
+    console.error('Chat API Error:', error.message || error);
     return NextResponse.json(
-      { error: 'Failed to process chat request' },
+      { error: error.message || 'Failed to process chat request' },
       { status: 500 }
     );
   }
