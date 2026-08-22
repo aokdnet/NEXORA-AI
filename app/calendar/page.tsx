@@ -71,41 +71,31 @@ export default function CalendarPage() {
   };
 
   const handleSync = () => {
-    // Generate .ics file content
-    let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//NEXORA AI//TH\n';
-    
+    if (!selectedDate || !events[selectedDate] || events[selectedDate].length === 0) {
+      alert('ไม่มีกิจกรรมในวันนี้ โปรดเพิ่มกิจกรรมก่อนซิงก์ครับ');
+      return;
+    }
+
+    // Sync the first event of the selected day to Google Calendar
+    const evt = events[selectedDate][0];
     const year = 2026;
     const month = '08'; // August
     
     const formatDate = (day: number, timeStr: string) => {
       const d = day.toString().padStart(2, '0');
       const time = timeStr.replace(':', '') + '00';
+      // Local time format for Google Calendar (without Z)
       return `${year}${month}${d}T${time}`;
     };
 
-    Object.entries(events).forEach(([day, dayEvents]) => {
-      dayEvents.forEach(evt => {
-        icsContent += 'BEGIN:VEVENT\n';
-        icsContent += `DTSTART;TZID=Asia/Bangkok:${formatDate(parseInt(day), evt.time)}\n`;
-        const endHour = (parseInt(evt.time.split(':')[0]) + 1).toString().padStart(2, '0');
-        const endMin = evt.time.split(':')[1];
-        icsContent += `DTEND;TZID=Asia/Bangkok:${formatDate(parseInt(day), endHour + ':' + endMin)}\n`;
-        icsContent += `SUMMARY:${evt.title}\n`;
-        if (evt.location) icsContent += `LOCATION:${evt.location}\n`;
-        icsContent += 'END:VEVENT\n';
-      });
-    });
+    const start = formatDate(selectedDate, evt.time);
+    const endHour = (parseInt(evt.time.split(':')[0]) + 1).toString().padStart(2, '0');
+    const end = formatDate(selectedDate, endHour + ':' + evt.time.split(':')[1]);
     
-    icsContent += 'END:VCALENDAR';
+    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(evt.title)}&dates=${start}/${end}&details=${encodeURIComponent(evt.location)}`;
     
-    // Create and download blob
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = 'nexora-calendar.ics';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Open Google Calendar in new tab (will open native app on mobile if installed)
+    window.open(googleCalUrl, '_blank');
 
     // Show success toast
     setSyncSuccess(true);
