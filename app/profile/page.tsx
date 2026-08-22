@@ -56,7 +56,7 @@ export default function ProfilePage() {
           <p style={{ color: 'var(--color-text-muted)', marginBottom: '24px', fontSize: '0.9rem' }}>
             เมื่อเข้าสู่ระบบ คุณจะไม่ต้องกรอกวันเกิดซ้ำ และสามารถซิงค์สถานะ Premium ของคุณได้
           </p>
-          <button onClick={() => signIn('credentials', { callbackUrl: '/profile' })} style={{
+          <button onClick={() => signIn('credentials', { username: 'MockUser', password: 'password', callbackUrl: '/profile' })} style={{
             background: 'linear-gradient(135deg, var(--color-gold-light), var(--color-gold))',
             color: 'var(--color-bg-navy)', padding: '12px 24px', borderRadius: '30px', fontWeight: 'bold', border: 'none', cursor: 'pointer'
           }}>
