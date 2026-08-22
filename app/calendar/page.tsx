@@ -70,21 +70,26 @@ export default function CalendarPage() {
     setNewEvent({ title: '', time: '09:00', location: '' });
   };
 
-  const handleSync = () => {
+  const [showSyncModal, setShowSyncModal] = useState(false);
+
+  const handleSyncClick = () => {
     if (!selectedDate || !events[selectedDate] || events[selectedDate].length === 0) {
       alert('ไม่มีกิจกรรมในวันนี้ โปรดเพิ่มกิจกรรมก่อนซิงก์ครับ');
       return;
     }
+    setShowSyncModal(true);
+  };
 
-    // Sync the first event of the selected day to Google Calendar
+  const syncGoogleCalendar = () => {
+    if (!selectedDate || !events[selectedDate] || events[selectedDate].length === 0) return;
+    
     const evt = events[selectedDate][0];
     const year = 2026;
-    const month = '08'; // August
+    const month = '08';
     
     const formatDate = (day: number, timeStr: string) => {
       const d = day.toString().padStart(2, '0');
       const time = timeStr.replace(':', '') + '00';
-      // Local time format for Google Calendar (without Z)
       return `${year}${month}${d}T${time}`;
     };
 
@@ -94,10 +99,46 @@ export default function CalendarPage() {
     
     const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(evt.title)}&dates=${start}/${end}&details=${encodeURIComponent(evt.location)}`;
     
-    // Open Google Calendar in new tab (will open native app on mobile if installed)
     window.open(googleCalUrl, '_blank');
+    setShowSyncModal(false);
+    setSyncSuccess(true);
+    setTimeout(() => setSyncSuccess(false), 3000);
+  };
 
-    // Show success toast
+  const syncAppleCalendar = () => {
+    if (!selectedDate || !events[selectedDate] || events[selectedDate].length === 0) return;
+    
+    const evt = events[selectedDate][0];
+    const year = 2026;
+    const month = '08';
+    
+    let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//NEXORA AI//TH\n';
+    
+    const formatDate = (day: number, timeStr: string) => {
+      const d = day.toString().padStart(2, '0');
+      const time = timeStr.replace(':', '') + '00';
+      return `${year}${month}${d}T${time}`;
+    };
+
+    icsContent += 'BEGIN:VEVENT\n';
+    icsContent += `DTSTART;TZID=Asia/Bangkok:${formatDate(selectedDate, evt.time)}\n`;
+    const endHour = (parseInt(evt.time.split(':')[0]) + 1).toString().padStart(2, '0');
+    const endMin = evt.time.split(':')[1];
+    icsContent += `DTEND;TZID=Asia/Bangkok:${formatDate(selectedDate, endHour + ':' + endMin)}\n`;
+    icsContent += `SUMMARY:${evt.title}\n`;
+    if (evt.location) icsContent += `LOCATION:${evt.location}\n`;
+    icsContent += 'END:VEVENT\n';
+    icsContent += 'END:VCALENDAR';
+    
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'nexora-calendar.ics';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setShowSyncModal(false);
     setSyncSuccess(true);
     setTimeout(() => setSyncSuccess(false), 3000);
   };
@@ -204,14 +245,14 @@ export default function CalendarPage() {
 
             <div className={styles.mainActions}>
               <button className={styles.addEventBtn} onClick={() => setShowModal(true)}>+ เพิ่มกิจกรรม</button>
-              <button className={styles.syncBtn} onClick={handleSync}>📅 ซิงก์ ปฏิทิน</button>
+              <button className={styles.syncBtn} onClick={handleSyncClick}>📅 ซิงก์ ปฏิทิน</button>
             </div>
           </div>
         ) : (
           <div className={styles.emptyState}>
             <p>ยังไม่มีกิจกรรมในวันที่ {selectedDate}</p>
             <button className={styles.addEventBtn} onClick={() => setShowModal(true)}>+ เพิ่มกิจกรรมใหม่</button>
-            <button className={styles.syncBtn} onClick={handleSync} style={{marginTop: '12px'}}>📅 ซิงก์ ปฏิทิน</button>
+            <button className={styles.syncBtn} onClick={handleSyncClick} style={{marginTop: '12px'}}>📅 ซิงก์ ปฏิทิน</button>
           </div>
         )}
       </div>
@@ -248,6 +289,35 @@ export default function CalendarPage() {
                 <button type="submit" className={styles.saveBtn}>บันทึก</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSyncModal && (
+        <div className={styles.modalOverlay}>
+          <div className={`glass-panel ${styles.modalContent}`}>
+            <h3>เลือกปฏิทินที่ต้องการซิงก์</h3>
+            <div className={styles.modalForm}>
+              <button 
+                type="button" 
+                onClick={syncGoogleCalendar} 
+                className={styles.saveBtn}
+                style={{ background: '#4285F4', color: 'white', marginBottom: '8px' }}
+              >
+                📅 Google Calendar
+              </button>
+              <button 
+                type="button" 
+                onClick={syncAppleCalendar} 
+                className={styles.saveBtn}
+                style={{ background: '#000000', color: 'white', border: '1px solid #333' }}
+              >
+                🍎 Apple Calendar / มือถือ
+              </button>
+            </div>
+            <div className={styles.modalActions} style={{ marginTop: '16px' }}>
+              <button type="button" onClick={() => setShowSyncModal(false)} className={styles.cancelBtn}>ยกเลิก</button>
+            </div>
           </div>
         </div>
       )}
