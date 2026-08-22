@@ -30,14 +30,11 @@ export default function AIAssistantPage() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
 
-    const userMessage: Message = { id: Date.now().toString(), role: 'user', content: input };
+    const userMessage: Message = { id: Date.now().toString(), role: 'user', content: messageText };
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
-    setInput('');
     setIsTyping(true);
 
     try {
@@ -48,7 +45,7 @@ export default function AIAssistantPage() {
           messages: messages
             .filter(m => m.id !== 'welcome')
             .map(m => ({ role: m.role, content: m.content }))
-            .concat([{ role: 'user', content: currentInput }])
+            .concat([{ role: 'user', content: messageText }])
         })
       });
 
@@ -56,13 +53,17 @@ export default function AIAssistantPage() {
 
       let aiContent: React.ReactNode = data.content;
 
-      // Check if API key is missing
-      if (response.status === 500 && data.error?.includes('API Key')) {
-        aiContent = `⚠️ ข้อผิดพลาด: ยังไม่ได้ตั้งค่า OpenAI API Key ในระบบ (กรุณาเพิ่มในไฟล์ .env.local)\n\nแต่ถ้านี่เป็นระบบจำลอง (Mock) จะให้คำแนะนำดังนี้ครับ: จากข้อมูลที่คุณให้มา ผมได้วิเคราะห์ร่วมกับตำราอุบากองและพื้นดวงของคุณแล้ว ถือว่าเป็นช่วงเวลาที่เหมาะสมครับ`;
+      // Handle Errors
+      if (!response.ok || !data.content) {
+        if (data.error?.includes('API Key') || response.status === 500) {
+           aiContent = `⚠️ ข้อผิดพลาด: ระบบไม่สามารถเชื่อมต่อกับ AI ได้ (อาจจะยังไม่ได้ใส่คีย์ OpenAI ของจริง)\n\nถ้าคุณกำลังทดสอบระบบจำลอง (Mock): "จากข้อมูลที่คุณให้มา ผมได้วิเคราะห์ร่วมกับตำราอุบากองและพื้นดวงของคุณแล้ว ถือว่าเป็นช่วงเวลาที่เหมาะสมมากครับ ลุยได้เลย!"`;
+        } else {
+           aiContent = `ขออภัยครับ เกิดข้อผิดพลาดบางอย่าง กรุณาลองใหม่อีกครั้ง (${data.error || 'Unknown Error'})`;
+        }
       }
 
       // Easter egg for mockup match (keep for presentation purposes)
-      if (currentInput.includes('โคราช')) {
+      if (messageText.includes('โคราช')) {
         aiContent = (
           <div className={styles.mockRecommendation}>
             <p>จากการวิเคราะห์ยามอุบากอง AI แนะนำเวลาออกเดินทางที่เหมาะสมที่สุดครับ (ระบบจำลอง)</p>
@@ -89,11 +90,23 @@ export default function AIAssistantPage() {
       const aiMessage: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: aiContent };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      const errorMessage: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: 'ขออภัยครับ ไม่สามารถเชื่อมต่อกับ AI ได้ในขณะนี้' };
+      const errorMessage: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: 'ขออภัยครับ ไม่สามารถเชื่อมต่อกับอินเทอร์เน็ตหรือเซิร์ฟเวอร์ได้ในขณะนี้' };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    const currentInput = input;
+    setInput('');
+    await sendMessage(currentInput);
+  };
+
+  const handleSuggestionClick = (text: string) => {
+    sendMessage(text);
   };
 
   return (
@@ -136,9 +149,9 @@ export default function AIAssistantPage() {
         <div className={styles.suggestionsWrapper}>
           <p className={styles.suggestionTitle}>คุณอาจสนใจ</p>
           <div className={styles.suggestions}>
-            <button className={styles.suggestionBadge}>💼 เริ่มงาน</button>
-            <button className={styles.suggestionBadge}>🤝 พบลูกค้า</button>
-            <button className={styles.suggestionBadge}>✈️ เดินทาง</button>
+            <button type="button" className={styles.suggestionBadge} onClick={() => handleSuggestionClick('ฤกษ์เริ่มงานวันนี้')}>💼 เริ่มงาน</button>
+            <button type="button" className={styles.suggestionBadge} onClick={() => handleSuggestionClick('ยามดีสำหรับไปพบลูกค้าวันนี้')}>🤝 พบลูกค้า</button>
+            <button type="button" className={styles.suggestionBadge} onClick={() => handleSuggestionClick('ฤกษ์เดินทางไกลวันนี้')}>✈️ เดินทาง</button>
           </div>
         </div>
 
