@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import styles from "./page.module.css";
 import { getUbakongSlots, getCurrentSlot, getAuspiceIcon, getAuspiceDesc, TimeSlot } from "@/lib/ubakong";
 
@@ -97,9 +98,9 @@ export default function Home() {
             <div className={styles.scoreItem}>❤️ ความสัมพันธ์ 76%</div>
           </div>
         </div>
-        <button className={styles.askAiButton}>
+        <Link href="/ai/assistant" className={styles.askAiButton} style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
           ✨ ถาม AI ว่าวันนี้ทำอะไรดี
-        </button>
+        </Link>
       </section>
     </div>
   );
