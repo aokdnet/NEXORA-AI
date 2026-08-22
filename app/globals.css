@@ -1,0 +1,79 @@
+:root {
+  --color-bg-navy: #090e1f;
+  --color-bg-navy-light: #16203a;
+  --color-gold: #d4af37;
+  --color-gold-light: #f3e5ab;
+  --color-gold-dark: #aa8623;
+  --color-text-main: #ffffff;
+  --color-text-muted: #a0aec0;
+  
+  --color-auspicious-good: #22c55e;
+  --color-auspicious-warning: #eab308;
+  --color-auspicious-bad: #ef4444;
+
+  --font-main: var(--font-noto-sans-thai), sans-serif;
+  --font-serif: var(--font-noto-serif-thai), serif;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--color-bg-navy);
+  color: var(--color-text-main);
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  /* Subtle gradient background */
+  background: radial-gradient(circle at 50% 0%, #1a2542 0%, var(--color-bg-navy) 60%);
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* App Container for Mobile View */
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  background-color: rgba(9, 14, 31, 0.8);
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(22, 32, 58, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 16px;
+}
+
+/* Gold Gradient Text */
+.text-gold-gradient {
+  background: linear-gradient(to right, var(--color-gold-light), var(--color-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
