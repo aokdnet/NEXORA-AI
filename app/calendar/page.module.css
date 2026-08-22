@@ -1,7 +1,8 @@
 .page {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;
+  padding-bottom: 100px; /* Ensure content is above bottom nav */
 }
 
 .header {
@@ -363,4 +364,32 @@
   color: var(--color-bg-navy);
   font-weight: 700;
   border: none;
+}
+
+/* Toast Styles */
+.toastOverlay {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  z-index: 2000;
+  animation: slideDown 0.3s ease forwards;
+  pointer-events: none;
+}
+
+.toastMessage {
+  background: rgba(34, 197, 94, 0.9); /* green-500 */
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

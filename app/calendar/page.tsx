@@ -28,6 +28,8 @@ export default function CalendarPage() {
   const [showModal, setShowModal] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', time: '09:00', location: '' });
 
+  const [syncSuccess, setSyncSuccess] = useState(false);
+
   const getDayClass = (day: number) => {
     if (day === selectedDate) return styles.selectedDay;
     const type = mockDayData[day]?.type;
@@ -54,13 +56,21 @@ export default function CalendarPage() {
   };
 
   const handleSync = () => {
-    alert('ซิงก์ข้อมูลกับ Google/Apple Calendar สำเร็จแล้ว (ระบบจำลอง)');
+    setSyncSuccess(true);
+    setTimeout(() => setSyncSuccess(false), 3000);
   };
 
   const currentEvents = selectedDate ? (events[selectedDate] || []) : [];
 
   return (
     <div className={styles.page}>
+      {syncSuccess && (
+        <div className={styles.toastOverlay}>
+          <div className={styles.toastMessage}>
+            ✅ ซิงก์ปฏิทินสำเร็จแล้ว!
+          </div>
+        </div>
+      )}
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <button className={styles.iconButton}>☰</button>
