@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 
 export default function CalendarPage() {
@@ -30,6 +30,21 @@ export default function CalendarPage() {
 
   const [syncSuccess, setSyncSuccess] = useState(false);
 
+  // Load events from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('nexora_events');
+    if (saved) {
+      try {
+        setEvents(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
+
+  // Save events to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('nexora_events', JSON.stringify(events));
+  }, [events]);
+
   const getDayClass = (day: number) => {
     if (day === selectedDate) return styles.selectedDay;
     const type = mockDayData[day]?.type;
@@ -56,6 +71,43 @@ export default function CalendarPage() {
   };
 
   const handleSync = () => {
+    // Generate .ics file content
+    let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//NEXORA AI//TH\n';
+    
+    const year = 2026;
+    const month = '08'; // August
+    
+    const formatDate = (day: number, timeStr: string) => {
+      const d = day.toString().padStart(2, '0');
+      const time = timeStr.replace(':', '') + '00';
+      return `${year}${month}${d}T${time}`;
+    };
+
+    Object.entries(events).forEach(([day, dayEvents]) => {
+      dayEvents.forEach(evt => {
+        icsContent += 'BEGIN:VEVENT\n';
+        icsContent += `DTSTART;TZID=Asia/Bangkok:${formatDate(parseInt(day), evt.time)}\n`;
+        const endHour = (parseInt(evt.time.split(':')[0]) + 1).toString().padStart(2, '0');
+        const endMin = evt.time.split(':')[1];
+        icsContent += `DTEND;TZID=Asia/Bangkok:${formatDate(parseInt(day), endHour + ':' + endMin)}\n`;
+        icsContent += `SUMMARY:${evt.title}\n`;
+        if (evt.location) icsContent += `LOCATION:${evt.location}\n`;
+        icsContent += 'END:VEVENT\n';
+      });
+    });
+    
+    icsContent += 'END:VCALENDAR';
+    
+    // Create and download blob
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'nexora-calendar.ics';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show success toast
     setSyncSuccess(true);
     setTimeout(() => setSyncSuccess(false), 3000);
   };
