@@ -27,15 +27,15 @@ export default function BirthProfilePage() {
 
       const data = await response.json();
 
-      if (response.status === 500 && data.error?.includes('API Key')) {
-        // Fallback mock if no API key
+      if (!response.ok || !data.summary) {
+        // Fallback mock if no API key or quota exceeded
         setResult({
           powerRating: 4,
           workRating: 5,
           financeRating: 4,
           travelRating: 3,
           relationRating: 4,
-          summary: '⚠️ ยังไม่ได้ตั้งค่า API Key แต่ระบบประเมินเบื้องต้นว่า: จากข้อมูลวันเกิด ระบบพบว่าช่วงเช้าเหมาะกับกิจกรรมที่ต้องใช้การตัดสินใจ ส่วนการเจรจาสำคัญสามารถนำยามประจำวันมาประกอบการเลือกเวลาเพิ่มเติมได้'
+          summary: '⚠️ (ระบบจำลองเนื่องจาก AI จริงขัดข้อง): จากข้อมูลวันเกิด ระบบพบว่าช่วงเช้าเหมาะกับกิจกรรมที่ต้องใช้การตัดสินใจ ส่วนการเจรจาสำคัญสามารถนำยามประจำวันมาประกอบการเลือกเวลาเพิ่มเติมได้'
         });
       } else {
         setResult(data);

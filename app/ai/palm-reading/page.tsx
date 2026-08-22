@@ -32,10 +32,10 @@ export default function PalmReadingPage() {
 
       const data = await response.json();
 
-      if (response.status === 500 && data.error?.includes('API Key')) {
-        // Fallback mock if no API key
+      if (!response.ok || !data.overallScore) {
+        // Fallback mock if no API key or quota exceeded or any error
         setResult({
-          lifeLine: '⚠️ ยังไม่ได้ตั้งค่า API Key (Mock): เส้นชีวิตของคุณยาวและชัดเจน บ่งบอกถึงพลังชีวิตที่เปี่ยมล้น',
+          lifeLine: '⚠️ (ระบบจำลองเนื่องจาก AI จริงขัดข้อง): เส้นชีวิตของคุณยาวและชัดเจน บ่งบอกถึงพลังชีวิตที่เปี่ยมล้น',
           headLine: 'เส้นสมองมีความโค้งมนสวยงาม แสดงถึงความคิดสร้างสรรค์',
           heartLine: 'เส้นหัวใจลึกและตรง คุณเป็นคนที่มีความมั่นคงทางอารมณ์',
           fateLine: 'เส้นวาสนาชัดเจนตั้งแต่ฐานมือ',
@@ -47,7 +47,7 @@ export default function PalmReadingPage() {
       }
     } catch (error) {
       console.error(error);
-      alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI');
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
     } finally {
       setIsAnalyzing(false);
     }
