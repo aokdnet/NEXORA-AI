@@ -22,6 +22,12 @@ export default function CalendarPage() {
     24: { type: 'good' },
   };
 
+  const [events, setEvents] = useState<Record<number, Array<{id: string, title: string, location: string, time: string}>>>({
+    21: [{ id: '1', title: 'พบลูกค้าสำคัญ', location: 'ห้องประชุม ชั้น 12', time: '14:00' }]
+  });
+  const [showModal, setShowModal] = useState(false);
+  const [newEvent, setNewEvent] = useState({ title: '', time: '09:00', location: '' });
+
   const getDayClass = (day: number) => {
     if (day === selectedDate) return styles.selectedDay;
     const type = mockDayData[day]?.type;
@@ -30,6 +36,28 @@ export default function CalendarPage() {
     if (type === 'neutral') return styles.neutralDay;
     return styles.normalDay;
   };
+
+  const handleAddEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDate || !newEvent.title) return;
+    
+    setEvents(prev => {
+      const dayEvents = prev[selectedDate] || [];
+      return {
+        ...prev,
+        [selectedDate]: [...dayEvents, { ...newEvent, id: Date.now().toString() }]
+      };
+    });
+    
+    setShowModal(false);
+    setNewEvent({ title: '', time: '09:00', location: '' });
+  };
+
+  const handleSync = () => {
+    alert('ซิงก์ข้อมูลกับ Google/Apple Calendar สำเร็จแล้ว (ระบบจำลอง)');
+  };
+
+  const currentEvents = selectedDate ? (events[selectedDate] || []) : [];
 
   return (
     <div className={styles.page}>
@@ -69,7 +97,7 @@ export default function CalendarPage() {
               onClick={() => setSelectedDate(day)}
             >
               {day}
-              {mockDayData[day] && <span className={styles.dot}></span>}
+              {(mockDayData[day] || events[day]) && <span className={styles.dot}></span>}
             </div>
           ))}
         </div>
@@ -82,23 +110,26 @@ export default function CalendarPage() {
       </div>
 
       <div className={styles.eventSection}>
-        {selectedDate === 21 ? (
+        {selectedDate && currentEvents.length > 0 ? (
           <div className={styles.eventList}>
-            <h3 className={styles.eventDateTitle}>21 สิงหาคม 2569</h3>
-            <div className={`glass-panel ${styles.eventCard}`}>
-              <div className={styles.eventTime}>14:00</div>
-              <div className={styles.eventDetails}>
-                <h4>พบลูกค้าสำคัญ</h4>
-                <p>ห้องประชุม ชั้น 12</p>
+            <h3 className={styles.eventDateTitle}>{selectedDate} สิงหาคม 2569</h3>
+            
+            {currentEvents.map(evt => (
+              <div key={evt.id} className={`glass-panel ${styles.eventCard}`}>
+                <div className={styles.eventTime}>{evt.time}</div>
+                <div className={styles.eventDetails}>
+                  <h4>{evt.title}</h4>
+                  <p>{evt.location || 'ไม่มีสถานที่'}</p>
+                </div>
+                <button className={styles.chevron}>›</button>
               </div>
-              <button className={styles.chevron}>›</button>
-            </div>
+            ))}
             
             <div className={styles.aiAdvice}>
               <span className={styles.aiIcon}>✨</span>
               <div className={styles.aiAdviceText}>
                 <strong>AI แนะนำ</strong>
-                <p>ช่วง 13:13-15:36 เหมาะสำหรับการเจรจา</p>
+                <p>ช่วง 13:13-15:36 เหมาะสำหรับการเจรจาและการเริ่มต้นใหม่</p>
               </div>
             </div>
 
@@ -120,17 +151,54 @@ export default function CalendarPage() {
             </div>
 
             <div className={styles.mainActions}>
-              <button className={styles.addEventBtn}>+ เพิ่มกิจกรรม</button>
-              <button className={styles.syncBtn}>📅 ซิงก์ ปฏิทิน</button>
+              <button className={styles.addEventBtn} onClick={() => setShowModal(true)}>+ เพิ่มกิจกรรม</button>
+              <button className={styles.syncBtn} onClick={handleSync}>📅 ซิงก์ ปฏิทิน</button>
             </div>
           </div>
         ) : (
           <div className={styles.emptyState}>
-            <p>ยังไม่มีกิจกรรมในวันนี้</p>
-            <button className={styles.addEventBtn}>+ เพิ่มกิจกรรมใหม่</button>
+            <p>ยังไม่มีกิจกรรมในวันที่ {selectedDate}</p>
+            <button className={styles.addEventBtn} onClick={() => setShowModal(true)}>+ เพิ่มกิจกรรมใหม่</button>
+            <button className={styles.syncBtn} onClick={handleSync} style={{marginTop: '12px'}}>📅 ซิงก์ ปฏิทิน</button>
           </div>
         )}
       </div>
+
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={`glass-panel ${styles.modalContent}`}>
+            <h3>เพิ่มกิจกรรมใหม่</h3>
+            <form onSubmit={handleAddEvent} className={styles.modalForm}>
+              <input 
+                type="text" 
+                placeholder="ชื่องาน/กิจกรรม" 
+                value={newEvent.title}
+                onChange={e => setNewEvent({...newEvent, title: e.target.value})}
+                required
+                className={styles.modalInput}
+              />
+              <input 
+                type="time" 
+                value={newEvent.time}
+                onChange={e => setNewEvent({...newEvent, time: e.target.value})}
+                required
+                className={styles.modalInput}
+              />
+              <input 
+                type="text" 
+                placeholder="สถานที่ (ตัวเลือก)" 
+                value={newEvent.location}
+                onChange={e => setNewEvent({...newEvent, location: e.target.value})}
+                className={styles.modalInput}
+              />
+              <div className={styles.modalActions}>
+                <button type="button" onClick={() => setShowModal(false)} className={styles.cancelBtn}>ยกเลิก</button>
+                <button type="submit" className={styles.saveBtn}>บันทึก</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
